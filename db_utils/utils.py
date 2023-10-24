@@ -48,6 +48,7 @@ def exec_commit(sql, args={}):
     return result
 
 
+
 def exec_insert_returning(sql, args={}):
     """
     Execute the SQL statement, commits the change, and returns the primary key created.
