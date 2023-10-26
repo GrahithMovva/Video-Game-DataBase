@@ -148,3 +148,13 @@ def unfollow(conn,uid,f_uid):
                 """ , (f_uid,uid))
     
     conn.commit()
+
+def search_user(conn,email):
+    curs = conn.cursor()
+    curs.execute("""
+                SELECT username FROM users
+                INNER JOIN users_email on users.uid = users_email.uid
+                WHERE email = %s
+                """ , (email,))
+    
+    return curs.fetchall()
