@@ -1,10 +1,10 @@
 import psycopg2
 from sshtunnel import SSHTunnelForwarder
-import credentials
+import cred.credentials
 import funcs
-username = credentials.username
-password = credentials.password
-dbName = credentials.dbName
+username = cred.credentials.username
+password = cred.credentials.password
+dbName = cred.credentials.dbName
 
 def getall(curs):
     curs.execute('SELECT * FROM users')
@@ -34,9 +34,6 @@ def main():
         except:
             print("Connection failed")
             
-        funcs.create_account(curs,'grahith','movva','gm','hello')
-        conn.commit()
-        getall(curs)
-            
+        
     
 main()
