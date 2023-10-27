@@ -1,9 +1,9 @@
 import psycopg2
 from sshtunnel import SSHTunnelForwarder
 
-username = "YOUR_CS_USERNAME"
-password = "YOUR_CS_PASSWORD"
-dbName = "YOUR_DB_NAME"
+username = "ssg9922"
+password = "Shreyes@1234"
+dbName = "p320_07"
 
 conn = ""
 
