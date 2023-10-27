@@ -35,9 +35,11 @@ def get_collections(conn, uid):
 def add_game_to_collection(conn,uid,cid,vid):
     curs = conn.cursor()
     curs.execute("""
-                SELECT * FROM user_owns
+                SELECT * FROM user_platforms
+                INNER JOIN video_game_platforms on user_platforms.pid = video_game_platforms.pid
                 WHERE uid = %s
-                """ , (uid,))
+                AND vid = %s
+                """ , (uid,vid))
     
     if(len(curs.fetchall()) > 0 ):
         curs.execute("""
@@ -104,7 +106,7 @@ def play_game(conn,uid,vid,time_min):
 def play_game_random(conn,uid,time_min):
     curs = conn.cursor()
     curs.execute("""
-                SELECT * FROM user_owns
+                SELECT vid FROM user_owns
                 WHERE uid = %s
                 """ , (uid,))
     video_games = curs.fetchall()
