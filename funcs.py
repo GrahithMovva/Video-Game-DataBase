@@ -163,7 +163,8 @@ def search_user(conn,email):
 
 def search_video_games(conn, name=None, platform=None, release_date=None, developer=None, price=None, genre=None, sort_by=None, sort_order='asc'):
     cur = conn.cursor()
-    query = """SELECT
+    query = """
+    SELECT
     vg.title AS video_game_name,
     p.platform_name AS platform,
     string_agg(c.contributor_name, ', ') AS developers,
@@ -173,58 +174,60 @@ def search_video_games(conn, name=None, platform=None, release_date=None, develo
     MAX(vgp.price_on_plat) AS price,
     vg.esrb AS age_rating,
     MAX(ur.star_rating) AS user_rating,
-    SUM(up.time_played) AS playtime
-    FROM
-        p320_07.video_games vg
-    JOIN
-        p320_07.video_game_platforms vgp ON vg.vid = vgp.vid
-    JOIN
-        p320_07.platforms p ON vgp.pid = p.pid
-    LEFT JOIN
-        p320_07.video_game_developers vgd ON vg.vid = vgd.vid
-    LEFT JOIN
-        p320_07.contributors c ON vgd.conid = c.conid
-    LEFT JOIN
-        p320_07.video_game_publishers vgp_pub ON vg.vid = vgp_pub.vid
-    LEFT JOIN
-        p320_07.contributors cp ON vgp_pub.conid = cp.conid
-    LEFT JOIN
-        p320_07.video_game_genre vgg ON vg.vid = vgg.vid
-    LEFT JOIN
-        p320_07.genre g ON vgg.gid = g.gid
-    LEFT JOIN
-        p320_07.user_ratings ur ON vg.vid = ur.vid
-    INNER JOIN
-        p320_07.user_plays up ON vg.vid = up.vid
+    sum(up.time_played) AS playtime
+FROM
+    p320_07.video_games vg
+JOIN
+    p320_07.video_game_platforms vgp ON vg.vid = vgp.vid
+JOIN
+    p320_07.platforms p ON vgp.pid = p.pid
+LEFT JOIN
+    p320_07.video_game_developers vgd ON vg.vid = vgd.vid
+LEFT JOIN
+    p320_07.contributors c ON vgd.conid = c.conid
+LEFT JOIN
+    p320_07.video_game_publishers vgp_pub ON vg.vid = vgp_pub.vid
+LEFT JOIN
+    p320_07.contributors cp ON vgp_pub.conid = cp.conid
+LEFT JOIN
+    p320_07.video_game_genre vgg ON vg.vid = vgg.vid
+LEFT JOIN
+    p320_07.genre g ON vgg.gid = g.gid
+LEFT JOIN
+    p320_07.user_ratings ur ON vg.vid = ur.vid
+INNER JOIN
+    p320_07.user_plays up ON vg.vid = up.vid
+    """
+
+    query2 = """
     GROUP BY
         vg.title, p.platform_name, vg.esrb, g.genre_name
     ORDER BY
-        vg.title ASC,
-        MAX(vgp.price_on_plat) ASC,
-        MAX(vgp.plat_release_date) ASC,
-        MAX(ur.star_rating) ASC,
+        vg.title,
+        MAX(vgp.price_on_plat),
+        MAX(vgp.plat_release_date),
+        MAX(ur.star_rating),
         MAX(ur.star_rating) DESC;
-    """
+        """
 
     if name:
-        query += f" AND name ILIKE '%{name}%'"
+        query += f"name ILIKE '%{name}%'"
     if platform:
-        query += f" AND platform ILIKE '%{platform}%'"
+        query += f"platform ILIKE '%{platform}%'"
     if release_date:
-        query += f" AND release_date = '{release_date}'"
+        query += f"release_date = '{release_date}'"
     if developer:
-        query += f" AND developer ILIKE '%{developer}%'"
+        query += f"developer ILIKE '%{developer}%'"
     if price:
-        query += f" AND price = {price}"
+        query += f"price = {price}"
     if genre:
-        query += f" AND genre ILIKE '%{genre}%'"
-
+        query += f"genre ILIKE '%{genre}%'"
     if sort_by:
         query += f" ORDER BY {sort_by} {sort_order}, name ASC, release_date ASC"
     else:
         query += " ORDER BY name ASC, release_date ASC"
 
-    cur.execute(query)
+    cur.execute(query+query2)
     results = cur.fetchall()
 
     cur.close()
