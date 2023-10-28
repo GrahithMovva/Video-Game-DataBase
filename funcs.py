@@ -175,28 +175,29 @@ def search_video_games(conn, name=None, platform=None, release_date=None, develo
     vg.esrb AS age_rating,
     MAX(ur.star_rating) AS user_rating,
     sum(up.time_played) AS playtime
-FROM
-    p320_07.video_games vg
-JOIN
-    p320_07.video_game_platforms vgp ON vg.vid = vgp.vid
-JOIN
-    p320_07.platforms p ON vgp.pid = p.pid
-LEFT JOIN
-    p320_07.video_game_developers vgd ON vg.vid = vgd.vid
-LEFT JOIN
-    p320_07.contributors c ON vgd.conid = c.conid
-LEFT JOIN
-    p320_07.video_game_publishers vgp_pub ON vg.vid = vgp_pub.vid
-LEFT JOIN
-    p320_07.contributors cp ON vgp_pub.conid = cp.conid
-LEFT JOIN
-    p320_07.video_game_genre vgg ON vg.vid = vgg.vid
-LEFT JOIN
-    p320_07.genre g ON vgg.gid = g.gid
-LEFT JOIN
-    p320_07.user_ratings ur ON vg.vid = ur.vid
-INNER JOIN
-    p320_07.user_plays up ON vg.vid = up.vid
+
+    FROM
+        p320_07.video_games vg
+    JOIN
+        p320_07.video_game_platforms vgp ON vg.vid = vgp.vid
+    JOIN
+        p320_07.platforms p ON vgp.pid = p.pid
+    LEFT JOIN
+        p320_07.video_game_developers vgd ON vg.vid = vgd.vid
+    LEFT JOIN
+        p320_07.contributors c ON vgd.conid = c.conid
+    LEFT JOIN
+        p320_07.video_game_publishers vgp_pub ON vg.vid = vgp_pub.vid
+    LEFT JOIN
+        p320_07.contributors cp ON vgp_pub.conid = cp.conid
+    LEFT JOIN
+        p320_07.video_game_genre vgg ON vg.vid = vgg.vid
+    LEFT JOIN
+        p320_07.genre g ON vgg.gid = g.gid
+    LEFT JOIN
+        p320_07.user_ratings ur ON vg.vid = ur.vid
+    INNER JOIN
+        p320_07.user_plays up ON vg.vid = up.vid
     """
 
     query2 = """
@@ -230,7 +231,6 @@ INNER JOIN
     cur.execute(query+query2)
     results = cur.fetchall()
 
-    cur.close()
-    conn.close()
+    return results
 
-    cur = conn.cursor()
+    
