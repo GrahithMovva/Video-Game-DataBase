@@ -1,7 +1,6 @@
 import random
 import datetime
 
-
 def create_account(conn, first_name, last_name,username, password):
     curs = conn.cursor()
     date = datetime.datetime.today()
@@ -160,3 +159,75 @@ def search_user(conn,email):
                 """ , (email,))
     
     return curs.fetchall()
+
+
+def search_video_games(conn, name=None, platform=None, release_date=None, developer=None, price=None, genre=None, sort_by=None, sort_order='asc'):
+    cur = conn.cursor()
+    query = """SELECT
+    vg.title AS video_game_name,
+    p.platform_name AS platform,
+    string_agg(c.contributor_name, ', ') AS developers,
+    string_agg(cp.contributor_name, ', ') AS publisher,
+    g.genre_name AS genre,
+    MAX(vgp.plat_release_date) AS release_date,
+    MAX(vgp.price_on_plat) AS price,
+    vg.esrb AS age_rating,
+    MAX(ur.star_rating) AS user_rating,
+    SUM(up.time_played) AS playtime
+    FROM
+        p320_07.video_games vg
+    JOIN
+        p320_07.video_game_platforms vgp ON vg.vid = vgp.vid
+    JOIN
+        p320_07.platforms p ON vgp.pid = p.pid
+    LEFT JOIN
+        p320_07.video_game_developers vgd ON vg.vid = vgd.vid
+    LEFT JOIN
+        p320_07.contributors c ON vgd.conid = c.conid
+    LEFT JOIN
+        p320_07.video_game_publishers vgp_pub ON vg.vid = vgp_pub.vid
+    LEFT JOIN
+        p320_07.contributors cp ON vgp_pub.conid = cp.conid
+    LEFT JOIN
+        p320_07.video_game_genre vgg ON vg.vid = vgg.vid
+    LEFT JOIN
+        p320_07.genre g ON vgg.gid = g.gid
+    LEFT JOIN
+        p320_07.user_ratings ur ON vg.vid = ur.vid
+    INNER JOIN
+        p320_07.user_plays up ON vg.vid = up.vid
+    GROUP BY
+        vg.title, p.platform_name, vg.esrb, g.genre_name
+    ORDER BY
+        vg.title ASC,
+        MAX(vgp.price_on_plat) ASC,
+        MAX(vgp.plat_release_date) ASC,
+        MAX(ur.star_rating) ASC,
+        MAX(ur.star_rating) DESC;
+    """
+
+    if name:
+        query += f" AND name ILIKE '%{name}%'"
+    if platform:
+        query += f" AND platform ILIKE '%{platform}%'"
+    if release_date:
+        query += f" AND release_date = '{release_date}'"
+    if developer:
+        query += f" AND developer ILIKE '%{developer}%'"
+    if price:
+        query += f" AND price = {price}"
+    if genre:
+        query += f" AND genre ILIKE '%{genre}%'"
+
+    if sort_by:
+        query += f" ORDER BY {sort_by} {sort_order}, name ASC, release_date ASC"
+    else:
+        query += " ORDER BY name ASC, release_date ASC"
+
+    cur.execute(query)
+    results = cur.fetchall()
+
+    cur.close()
+    conn.close()
+
+    cur = conn.cursor()
