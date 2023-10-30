@@ -211,22 +211,40 @@ def search_video_games(conn, name=None, platform=None, release_date=None, develo
         MAX(ur.star_rating) DESC;
         """
 
+    # if name:
+    #     query += f"name ILIKE '%{name}%'"
+    # if platform:
+    #     query += f"platform ILIKE '%{platform}%'"
+    # if release_date:
+    #     query += f"release_date = '{release_date}'"
+    # if developer:
+    #     query += f"developer ILIKE '%{developer}%'"
+    # if price:
+    #     query += f"price = {price}"
+    # if genre:
+    #     query += f"genre ILIKE '%{genre}%'"
+    # if sort_by:
+    #     query += f" ORDER BY {sort_by} {sort_order}, name ASC, release_date ASC"
+    # else:
+    #     query += " ORDER BY name ASC, release_date ASC"
+# WHERE
+#     vg.title ILIKE 'Minecraft' AND vg.esrb ILIKE 'E'
     if name:
-        query += f"name ILIKE '%{name}%'"
+        query += f"WHERE vg.title ILIKE '%{name}%'"
     if platform:
-        query += f"platform ILIKE '%{platform}%'"
+        query += f"WHERE p.platform_name ILIKE '%{platform}%'"
     if release_date:
-        query += f"release_date = '{release_date}'"
+        query += f"WHERE MAX(vgp.plat_release_date) = '{release_date}'"
     if developer:
-        query += f"developer ILIKE '%{developer}%'"
+        query += f"WHERE c.contributor_name ILIKE '%{developer}%'"
     if price:
-        query += f"price = {price}"
+        query += f"WHERE MAX(vgp.price_on_plat) = {price}"
     if genre:
-        query += f"genre ILIKE '%{genre}%'"
+        query += f"WHERE g.genre_name ILIKE '%{genre}%'"
     if sort_by:
-        query += f" ORDER BY {sort_by} {sort_order}, name ASC, release_date ASC"
+        query += f" ORDER BY {sort_by} {sort_order}, vg.title ASC, MAX(vgp.plat_release_date) ASC"
     else:
-        query += " ORDER BY name ASC, release_date ASC"
+        query += " ORDER BY vg.title ASC, MAX(vgp.plat_release_date) ASC"
 
     cur.execute(query+query2)
     results = cur.fetchall()
