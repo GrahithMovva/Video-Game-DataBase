@@ -4,30 +4,31 @@ import json
 import re
 import funcs
 
-
 credentials = json.load(open("credentials.json"))
 username = credentials["username"]
 password = credentials["password"]
 dbName = "p320_07"
 
 
-def not_implemented(curs):
+def not_implemented(*args):
     print("Not implemented")
 
 
 functions_info = {
-    "cra":      [5, "Usage: cra  [Email] | [Username] | [Password] | [first_name] | [last_name]", funcs.create_account],
-    "addplat":  [1, "Usage: addplat  [platform] ", not_implemented],
-    "crc":      [1, "Usage: crc  [collection_name]", not_implemented],
-    "coladd":   [2, "Usage: coladd  [collection_name] | [game]", not_implemented],
-    "coldelg":  [2, "Usage: coldelg  [collection_name] | [game]", not_implemented],
-    "coldel":   [1, "Usage: coldel  [collection_name]", not_implemented],
-    "colren":   [2, "Usage: colren  [collection_name] | [new_name]", not_implemented],
-    "rate":     [2, "Usage: rate  [game] | [stars]", not_implemented],
-    "fol":      [1, "Usage: fol  [username]", not_implemented],
-    "unfol":    [1, "Usage: unfol  [username]", not_implemented],
-    "login":    [2, "Usage: login  [username] | [password]", not_implemented],
-    "logout":   [0, "Usage: logout", not_implemented],
+    "cra": [4, "cra  [username] | [password] | [first_name] | [last_name]", funcs.create_account],
+    "crc": [2, "crc  [uid] | [collection_name]", funcs.create_collection],
+    "getc": [1, "getc  [uid]", funcs.get_collections],
+    "coladd": [3, "coladd  [uid] | [cid] | [vid]", funcs.add_game_to_collection],
+    "coldelg": [3, "coldelg  [uid] | [cid] | [vid]", funcs.delete_game_from_collection],
+    "coldel": [1, "coldel  [cid]", funcs.delete_collection],
+    "colren": [2, "colren  [cid] | [new_name]", funcs.modify_collection_name],
+    "rate": [3, "rate  [uid] | [vid] | [stars]", funcs.rate_game],
+    "play": [3, "play  [uid] | [vid] | [minutes]", funcs.play_game],
+    "playr": [2, "playr  [uid] | [minutes]", funcs.play_game_random],
+    "fol": [2, "fol  [uid] | [f_uid]", funcs.follow],
+    "unfol": [2, "unfol  [uid] | [f_uid]", funcs.unfollow],
+    "login": [2, "login  [username] | [password]", not_implemented],
+    "logout": [0, "logout", not_implemented],
 }
 
 
@@ -55,32 +56,35 @@ def authenticate():
 
 
 def start_session(conn):
-    curs = conn.cursor()
+    # curs = conn.cursor()
     print("Type 'help' for a list of available functions or 'q' to exit")
     while True:
         names = functions_info.keys()
         x = str(input(">>> "))
         if x == "q":
             break
-        args = re.split(" ", x)
-
-        if args[0] == "help":
-            print("List of function usages:")
+        arguments = re.split(" ", x)
+        name = arguments[0]
+        if name == "help":
+            print("List of functions:")
             for f in names:
                 print(functions_info[f][1])
             continue
 
-        if args[0] not in names:
-            print("Invalid function '{}'".format(x))
+        if name not in names:
+            print("Invalid function '{}'".format(name))
             continue
 
-        func = functions_info[args[0]]
-        if len(args)-1 != func[0]:
+        func = functions_info[name]
+        if len(arguments) - 1 != func[0]:
             print("Incorrect usage")
-            print(func[1])
+            print("Usage: " + func[1])
             continue
-        args[0] = curs
-        func[2](args)
+        arguments[0] = conn
+        try:
+            func[2](*arguments)
+        except Exception as e:
+            print(e)
         conn.commit()
 
 

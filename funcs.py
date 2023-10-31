@@ -132,7 +132,7 @@ def follow(conn, uid, f_uid):
 
     if(len(curs.fetchall()) > 0):
         curs.execute("""
-                    INSERT INTO user_follows (userid,followerid)
+                    INSERT INTO user_followers (userid,followerid)
                     VALUES (%s,%s)
                     """ , (f_uid,uid))
         conn.commit()
@@ -143,12 +143,13 @@ def follow(conn, uid, f_uid):
 def unfollow(conn,uid,f_uid):
     curs = conn.cursor()
     curs.execute("""
-                DELETE FROM user_follows
+                DELETE FROM user_followers
                 WHERE userid = %s
                 AND followerid = %s 
                 """ , (f_uid,uid))
     
     conn.commit()
+
 
 def search_user(conn,email):
     curs = conn.cursor()
