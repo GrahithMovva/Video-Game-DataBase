@@ -5,44 +5,62 @@ import re
 import funcs
 
 credentials = json.load(open("credentials.json"))
-username = credentials["username"]
-password = credentials["password"]
-dbName = "p320_07"
+USERNAME = credentials["username"]
+PASSWORD = credentials["password"]
+DBNAME = "p320_07"
+UID = -1
+USER = None
 
 
-def not_implemented(*args):
-    print("Not implemented")
+def print_col(conn, username):
+    print(funcs.get_collections(conn, username))
+
+
+def login(conn, username, password):
+    uid = funcs.login(conn, username, password)
+    if uid != -1:
+        globals()["UID"] = uid
+        globals()["USER"] = username
+        print("Logged in as", username)
+    else:
+        print("Incorrect username or password")
+
+
+def logout(*args):
+    globals()["UID"] = -1
+    globals()["USER"] = None
+    print("Logged out successfully")
 
 
 functions_info = {
+    "login": [2, "login  [username] | [password]", login],
     "cra": [4, "cra  [username] | [password] | [first_name] | [last_name]", funcs.create_account],
-    "crc": [2, "crc  [uid] | [collection_name]", funcs.create_collection],
-    "getc": [1, "getc  [uid]", funcs.get_collections],
-    "coladd": [3, "coladd  [uid] | [cid] | [vid]", funcs.add_game_to_collection],
-    "coldelg": [3, "coldelg  [uid] | [cid] | [vid]", funcs.delete_game_from_collection],
-    "coldel": [1, "coldel  [cid]", funcs.delete_collection],
-    "colren": [2, "colren  [cid] | [new_name]", funcs.modify_collection_name],
-    "rate": [3, "rate  [uid] | [vid] | [stars]", funcs.rate_game],
-    "play": [3, "play  [uid] | [vid] | [minutes]", funcs.play_game],
-    "playr": [2, "playr  [uid] | [minutes]", funcs.play_game_random],
-    "fol": [2, "fol  [uid] | [f_uid]", funcs.follow],
-    "unfol": [2, "unfol  [uid] | [f_uid]", funcs.unfollow],
-    "login": [2, "login  [username] | [password]", not_implemented],
-    "logout": [0, "logout", not_implemented],
+    "crc": [1, "crc  [collection_name]", funcs.create_collection],
+    "getc": [0, "getc", print_col],
+    "coladd": [2, "coladd  [collection] | [game]", funcs.add_game_to_collection],
+    "coldelg": [2, "coldelg  [collection] | [game]", funcs.delete_game_from_collection],
+    "coldel": [1, "coldel  [collection]", funcs.delete_collection],
+    "colren": [2, "colren  [collection] | [new_name]", funcs.modify_collection_name],
+    "rate": [2, "rate  [game] | [stars]", funcs.rate_game],
+    "play": [2, "play  [game] | [minutes]", funcs.play_game],
+    "playr": [1, "playr  [minutes]", funcs.play_game_random],
+    "fol": [1, "fol  [username]", funcs.follow],
+    "unfol": [1, "unfol  [username]", funcs.unfollow],
+    "logout": [0, "logout", logout]
 }
 
 
 def authenticate():
     with SSHTunnelForwarder(('starbug.cs.rit.edu', 22),
-                            ssh_username=username,
-                            ssh_password=password,
+                            ssh_username=USERNAME,
+                            ssh_password=PASSWORD,
                             remote_bind_address=('127.0.0.1', 5432)) as server:
         server.start()
         print("SSH tunnel established")
         params = {
-            'database': dbName,
-            'user': username,
-            'password': password,
+            'database': DBNAME,
+            'user': USERNAME,
+            'password': PASSWORD,
             'host': 'localhost',
             'port': server.local_bind_port
         }
@@ -56,10 +74,13 @@ def authenticate():
 
 
 def start_session(conn):
-    # curs = conn.cursor()
     print("Type 'help' for a list of available functions or 'q' to exit")
     while True:
-        names = functions_info.keys()
+        names = list(functions_info.keys())
+        if UID == -1:
+            names = names[:2]
+        else:
+            names = names[2:]
         x = str(input(">>> "))
         if x == "q":
             break
@@ -69,10 +90,12 @@ def start_session(conn):
             print("List of functions:")
             for f in names:
                 print(functions_info[f][1])
+            if UID == -1:
+                print("Login to see other functions")
             continue
 
         if name not in names:
-            print("Invalid function '{}'".format(name))
+            print(f"Invalid function '{name}'")
             continue
 
         func = functions_info[name]
@@ -81,6 +104,8 @@ def start_session(conn):
             print("Usage: " + func[1])
             continue
         arguments[0] = conn
+        if USER is not None:
+            arguments.insert(1, USER)
         try:
             func[2](*arguments)
         except Exception as e:

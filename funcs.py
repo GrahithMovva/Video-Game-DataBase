@@ -1,25 +1,30 @@
 import random
 import datetime
 
-def create_account(conn, first_name, last_name,username, password):
+
+def create_account(conn, first_name, last_name, username, password):
     curs = conn.cursor()
     date = datetime.datetime.today()
     curs.execute("""
                 INSERT INTO users (first_name, last_name, last_access_date, creation_date, username, password)
                 VALUES (%s,%s,%s,%s,%s,%s)
-                """, (first_name,last_name,date,date,username,password))
+                """, (first_name, last_name, date, date, username, password))
     conn.commit()
-    
-def create_collection(conn,uid,collection_name):
+
+
+def create_collection(conn, username, collection_name):
     curs = conn.cursor()
+    uid = get_uid(curs, username)
     curs.execute("""
                 INSERT INTO collections (uid,collection_name)
                 VALUES (%s,%s)
-                """, (uid,collection_name))
+                """, (uid, collection_name))
     conn.commit()
 
-def get_collections(conn, uid):
+
+def get_collections(conn, username):
     curs = conn.cursor()
+    uid = get_uid(curs, username)
     curs.execute(
                 """SELECT (collection_name),count(video_games.vid),SUM(time_played)FROM video_game_collections
                 INNER JOIN collections on video_game_collections.cid = collections.cid
@@ -31,90 +36,109 @@ def get_collections(conn, uid):
     
     return curs.fetchall()
 
-def add_game_to_collection(conn,uid,cid,vid):
+
+def add_game_to_collection(conn, username, collection_name, game):
     curs = conn.cursor()
+    uid = get_uid(curs, username)
+    vid = get_vid(curs, game)
+    cid = get_cid(curs, collection_name, username)
     curs.execute("""
                 SELECT * FROM user_platforms
                 INNER JOIN video_game_platforms on user_platforms.pid = video_game_platforms.pid
                 WHERE uid = %s
                 AND vid = %s
-                """ , (uid,vid))
+                """, (uid, vid))
     
-    if(len(curs.fetchall()) > 0 ):
+    if(len(curs.fetchall()) > 0):
         curs.execute("""
                     INSERT INTO video_game_collections(cid,vid)
                     VALUES (%s,%s)
-                    """ , (cid,vid))
+                    """, (cid, vid))
         conn.commit()
     
     else:
         print("You do not own the video game")
 
-def delete_game_from_collection(conn,uid,cid,vid):
+
+def delete_game_from_collection(conn, username, collection_name, game):
     curs = conn.cursor()
+    vid = get_vid(curs, game)
+    cid = get_cid(curs, collection_name, username)
     curs.execute("""
                 DELETE FROM video_game_collections
                 WHERE cid = %s and vid = %s
-                """ , (cid, vid))
+                """, (cid, vid))
     conn.commit()
-    
-def delete_collection(conn,cid):
+
+
+def delete_collection(conn, username, collection_name):
     curs = conn.cursor()
+    cid = get_cid(curs, collection_name, username)
     curs.execute("""
                 DELETE FROM collections
                 WHERE cid = %s
-                """ , (cid,))
+                """, (cid,))
     conn.commit()
 
-def modify_collection_name(conn,cid,new_name):
+
+def modify_collection_name(conn, username, collection_name, new_name):
     curs = conn.cursor()
+    cid = get_cid(curs, collection_name, username)
     curs.execute("""
                 UPDATE collections
                 SET collection_name = %s
                 WHERE cid = %s
-                """ , (new_name,cid))
+                """, (new_name, cid))
     conn.commit()
 
-def rate_game(conn,uid,vid,rating):
+
+def rate_game(conn, username, game, rating):
     curs = conn.cursor()
+    uid = get_uid(curs, username)
+    vid = get_vid(curs, game)
     curs.execute("""
                 INSERT INTO user_ratings (uid, vid, star_rating)
                 VALUES (%s , %s, %s)
-                """, (uid,vid,rating))
+                """, (uid, vid, rating))
     
     conn.commit()
 
-def play_game(conn,uid,vid,time_min):
+
+def play_game(conn, username, game, time_min):
     curs = conn.cursor()
+    uid = get_uid(curs, username)
+    vid = get_vid(curs, game)
     curs.execute("""
                 SELECT * FROM user_owns
                 WHERE uid = %s
-                """ , (uid,))
+                """, (uid,))
     
-    if(len(curs.fetchall()) > 0 ):
+    if(len(curs.fetchall()) > 0):
         curs.execute("""
                     INSERT INTO user_plays (uid,vid,time_played)
                     VALUES(%s,%s,%s)
-                    """ , (uid,vid,time_min))
+                    """, (uid, vid, time_min))
         
         conn.commit()
     
     else:
         print("You do not own the game")
 
-def play_game_random(conn,uid,time_min):
+
+def play_game_random(conn, username, time_min):
     curs = conn.cursor()
+    uid = get_uid(curs, username)
     curs.execute("""
                 SELECT vid FROM user_owns
                 WHERE uid = %s
-                """ , (uid,))
+                """, (uid,))
     video_games = curs.fetchall()
     if(len(video_games) > 0):
         vid = random.choice(video_games)
         curs.execute("""
                     INSERT INTO user_plays (uid,vid,time_played)
                     VALUES(%s,%s,%s)
-                    """ , (uid,vid,time_min))
+                    """, (uid, vid, time_min))
         
         conn.commit()
     
@@ -122,42 +146,46 @@ def play_game_random(conn,uid,time_min):
         print("You do not own any games")
 
 
-def follow(conn, uid, f_uid):
+def follow(conn, username, f_username):
     curs = conn.cursor()
-    
+    uid = get_uid(curs, username)
+    f_uid = get_uid(curs, f_username)
     curs.execute("""
                 SELECT * FROM users
                 WHERE uid = %s
-                """, ( f_uid,))
+                """, (f_uid,))
 
     if(len(curs.fetchall()) > 0):
         curs.execute("""
                     INSERT INTO user_followers (userid,followerid)
                     VALUES (%s,%s)
-                    """ , (f_uid,uid))
+                    """, (f_uid, uid))
         conn.commit()
     
     else:
         print("User does not exist")
 
-def unfollow(conn,uid,f_uid):
+
+def unfollow(conn, username, f_username):
     curs = conn.cursor()
+    uid = get_uid(curs, username)
+    f_uid = get_uid(curs, f_username)
     curs.execute("""
                 DELETE FROM user_followers
                 WHERE userid = %s
                 AND followerid = %s 
-                """ , (f_uid,uid))
+                """, (f_uid, uid))
     
     conn.commit()
 
 
-def search_user(conn,email):
+def search_user(conn, email):
     curs = conn.cursor()
     curs.execute("""
                 SELECT username FROM users
                 INNER JOIN users_email on users.uid = users_email.uid
                 WHERE email = %s
-                """ , (email,))
+                """, (email,))
     
     return curs.fetchall()
 
@@ -252,4 +280,48 @@ def search_video_games(conn, name=None, platform=None, release_date=None, develo
 
     return results
 
-    
+
+def login(conn, username, password):
+    cursor = conn.cursor()
+    uid = get_uid(cursor, username)
+    cursor.execute(f"""
+        SELECT COUNT(*)
+        FROM users
+        WHERE uid = {uid}
+        AND password = '{password}'""")
+    if cursor.fetchall()[0][0] == 1:
+        return uid
+    return -1
+
+
+def get_uid(cursor, username):
+    cursor.execute(f"""
+        SELECT uid
+        FROM users
+        WHERE username ='{username}'""")
+    result = cursor.fetchall()
+    if len(result) != 1:
+        return -1
+    return result[0][0]
+
+
+def get_cid(cursor, collection_name, username):
+    cursor.execute(f"""
+        SELECT cid
+        FROM collections
+        WHERE collection_name = '{collection_name}'
+        AND uid = {get_uid(cursor, username)}""")
+    result = cursor.fetchall()
+    if len(result) != 1:
+        return -1
+    return result[0][0]
+
+
+def get_vid(cursor, video_game):
+    cursor.execute(f"""
+         SELECT vid FROM video_games
+         WHERE title = '{video_game}'""")
+    result = cursor.fetchall()
+    if len(result) != 1:
+        return -1
+    return result[0][0]
