@@ -228,7 +228,7 @@ def search_user(conn, username, email):
         print(c[0])
 
 
-def search_video_games(conn, searcher, sort_by, sort_order='asc'):
+def search_video_games(conn, username, sort_by , searcher, sort_order='ASC'):
     cur = conn.cursor()
     query = """
     SELECT
@@ -267,38 +267,25 @@ def search_video_games(conn, searcher, sort_by, sort_order='asc'):
         p320_07.user_plays up ON vg.vid = up.vid
     """
 
-    query2 = """
-    GROUP BY
-        vg.title, p.platform_name, vg.esrb, g.genre_name
-    ORDER BY
-        vg.title,
-        MAX(vgp.price_on_plat),
-        MAX(vgp.plat_release_date),
-        MAX(ur.star_rating),
-        MAX(ur.star_rating) DESC;
-        """
-
     if sort_by == "name":
-        query += f"WHERE vg.title ILIKE '%{searcher}%'"
+        query += f"WHERE vg.title ILIKE '%{searcher}%' GROUP BY vg.title, p.platform_name, vg.esrb, g.genre_name ORDER BY vg.title"
     if sort_by == "platform":
-        query += f"WHERE p.platform_name ILIKE '%{searcher}%'"
+        query += f"WHERE p.platform_name ILIKE '%{searcher}%' ORDER BY platform"
     if sort_by == "release_date":
-        query += f"WHERE MAX(vgp.plat_release_date) = '{searcher}'"
+        query += f"WHERE MAX(vgp.plat_release_date) = '{searcher}' ORDER BY release_date"
     if sort_by == "developer":
-        query += f"WHERE c.contributor_name ILIKE '%{searcher}%'"
+        query += f"WHERE c.contributor_name ILIKE '%{searcher}%' ORDER BY developer"
     if sort_by == "price":
-        query += f"WHERE MAX(vgp.price_on_plat) = {searcher}"
+        query += f"WHERE MAX(vgp.price_on_plat) = {searcher} ORDER BY price"
     if sort_by == "genre":
-        query += f"WHERE g.genre_name ILIKE '%{searcher}%'"
+        query += f"WHERE g.genre_name ILIKE '%{searcher}%' ORDER BY genre"
     if sort_order:
-        query += f" ORDER BY {sort_by} {sort_order}, vg.title ASC, MAX(vgp.plat_release_date) ASC"
+        query += f" {sort_order}, vg.title ASC, MAX(vgp.plat_release_date) ASC"
     else:
-        query += " ORDER BY vg.title ASC, MAX(vgp.plat_release_date) ASC"
+        query += "ORDER BY vg.title ASC, MAX(vgp.plat_release_date) ASC"
 
-    cur.execute(query+query2)
-    results = cur.fetchall()
-
-    return results
+    cur.execute(query)
+    print(cur.fetchall())
 
 def login(conn, username, password):
     cursor = conn.cursor()
