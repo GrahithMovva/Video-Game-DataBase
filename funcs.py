@@ -96,7 +96,21 @@ def rate_game(conn, username, game, rating):
     curs = conn.cursor()
     uid = get_uid(curs, username)
     vid = get_vid(curs, game)
+
     curs.execute("""
+                SELECT COUNT(*) FROM user_ratings
+                WHERE uid = %s AND vid = %s
+                """)
+    
+    if(len(curs.fetchall()) > 0):
+        curs.execute("""
+                    UPDATE user_ratings
+                    SET rating = %s
+                    WHERE uid = %s and vid= %s
+                    """ , (rating,uid,vid))
+
+    else:
+        curs.execute("""
                 INSERT INTO user_ratings (uid, vid, star_rating)
                 VALUES (%s , %s, %s)
                 """, (uid, vid, rating))
