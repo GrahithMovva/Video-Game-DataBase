@@ -105,9 +105,9 @@ def rate_game(conn, username, game, rating):
     if(len(curs.fetchall()) > 0):
         curs.execute("""
                     UPDATE user_ratings
-                    SET rating = {rating}
-                    WHERE uid = {uid} and vid= {vid}
-                    """ )
+                    SET rating = %s
+                    WHERE uid = %s and vid= %s
+                    """ , (rating, uid, vid))
 
     else:
         curs.execute("""
