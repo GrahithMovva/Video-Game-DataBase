@@ -105,9 +105,9 @@ def rate_game(conn, username, game, rating):
     if(len(curs.fetchall()) > 0):
         curs.execute("""
                     UPDATE user_ratings
-                    SET rating = %s
-                    WHERE uid = %s and vid= %s
-                    """ , (rating,uid,vid))
+                    SET rating = {rating}
+                    WHERE uid = {uid} and vid= {vid}
+                    """ )
 
     else:
         curs.execute("""
@@ -297,6 +297,7 @@ def search_video_games(conn, name=None, platform=None, release_date=None, develo
 
 def login(conn, username, password):
     cursor = conn.cursor()
+    date = datetime.datetime.today()
     uid = get_uid(cursor, username)
     cursor.execute(f"""
         SELECT COUNT(*)
@@ -304,6 +305,11 @@ def login(conn, username, password):
         WHERE uid = {uid}
         AND password = '{password}'""")
     if cursor.fetchall()[0][0] == 1:
+        cursor.execute("""
+                       UPDATE users
+                       SET last_access_date = %s
+                       WHERE uid = %s
+                       """ , (date,uid))
         return uid
     return -1
 
