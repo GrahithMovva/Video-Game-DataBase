@@ -41,7 +41,13 @@ def add_game_to_collection(conn, username, collection_name, game):
     curs = conn.cursor()
     uid = get_uid(curs, username)
     vid = get_vid(curs, game)
+    if vid == -1:
+        print("Game does not exist")
+        return
     cid = get_cid(curs, collection_name, username)
+    if cid == -1:
+        print("Collection does not exist")
+        return
     curs.execute("""
                 SELECT * FROM user_platforms
                 INNER JOIN video_game_platforms on user_platforms.pid = video_game_platforms.pid
@@ -57,13 +63,19 @@ def add_game_to_collection(conn, username, collection_name, game):
         conn.commit()
     
     else:
-        print("You do not own the platform the vidoe game is based on ")
+        print("You do not own the platform the video game is based on")
 
 
 def delete_game_from_collection(conn, username, collection_name, game):
     curs = conn.cursor()
     vid = get_vid(curs, game)
+    if vid == -1:
+        print("Game does not exist")
+        return
     cid = get_cid(curs, collection_name, username)
+    if cid == -1:
+        print("Collection does not exist")
+        return
     curs.execute("""
                 DELETE FROM video_game_collections
                 WHERE cid = %s and vid = %s
@@ -74,6 +86,9 @@ def delete_game_from_collection(conn, username, collection_name, game):
 def delete_collection(conn, username, collection_name):
     curs = conn.cursor()
     cid = get_cid(curs, collection_name, username)
+    if cid == -1:
+        print("Collection does not exist")
+        return
     curs.execute("""
                 DELETE FROM collections
                 WHERE cid = %s
@@ -84,6 +99,9 @@ def delete_collection(conn, username, collection_name):
 def modify_collection_name(conn, username, collection_name, new_name):
     curs = conn.cursor()
     cid = get_cid(curs, collection_name, username)
+    if cid == -1:
+        print("Collection does not exist")
+        return
     curs.execute("""
                 UPDATE collections
                 SET collection_name = %s
@@ -96,7 +114,9 @@ def rate_game(conn, username, game, rating):
     curs = conn.cursor()
     uid = get_uid(curs, username)
     vid = get_vid(curs, game)
-
+    if vid == -1:
+        print("Game does not exist")
+        return
     curs.execute("""
                 SELECT COUNT(*) FROM user_ratings
                 WHERE uid = %s AND vid = %s
@@ -122,6 +142,9 @@ def play_game(conn, username, game, time_min):
     curs = conn.cursor()
     uid = get_uid(curs, username)
     vid = get_vid(curs, game)
+    if vid == -1:
+        print("Game does not exist")
+        return
     curs.execute("""
                 SELECT * FROM user_owns
                 WHERE uid = %s AND vid = %s 
