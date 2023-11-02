@@ -68,9 +68,9 @@ def authenticate():
         try:
             conn = psycopg2.connect(**params)
             print("Database connection established")
+            start_session(conn)
         except:
             print("Connection failed")
-        start_session(conn)
 
 
 def start_session(conn):
@@ -84,7 +84,7 @@ def start_session(conn):
         x = str(input(">>> "))
         if x == "q":
             break
-        arguments = re.split(" ", x)
+        arguments = [e[0] if e[0] else e[1] for e in re.findall(r'"([^"]+)"|([^ ]+)', x)]
         name = arguments[0]
         if name == "help":
             print("List of functions:")
