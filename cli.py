@@ -44,7 +44,7 @@ functions_info = {
     "fol": [1, "fol  [username]", funcs.follow],
     "unfol": [1, "unfol  [username]", funcs.unfollow],
     "logout": [0, "logout", logout],
-    "search_game": [2, "search_game [search_type] [game]", funcs.search_video_games],
+    "search_game": [4, "search_game  [search_by] | [string] | [order_by] | [asc/desc]", funcs.search_video_games],
 }
 
 

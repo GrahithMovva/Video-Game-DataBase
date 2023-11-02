@@ -228,7 +228,7 @@ def search_user(conn, username, email):
         print(c[0])
 
 
-def search_video_games(conn, username, sort_by , searcher, sort_order='ASC'):
+def search_video_games(conn, username, search_by, searcher, sort_by, sort_order):
     cur = conn.cursor()
     query = """
     SELECT
@@ -267,25 +267,41 @@ def search_video_games(conn, username, sort_by , searcher, sort_order='ASC'):
         p320_07.user_plays up ON vg.vid = up.vid
     """
 
-    if sort_by == "name":
-        query += f"WHERE vg.title ILIKE '%{searcher}%' GROUP BY vg.title, p.platform_name, vg.esrb, g.genre_name ORDER BY vg.title"
-    if sort_by == "platform":
-        query += f"WHERE p.platform_name ILIKE '%{searcher}%' ORDER BY platform"
-    if sort_by == "release_date":
-        query += f"WHERE MAX(vgp.plat_release_date) = '{searcher}' ORDER BY release_date"
-    if sort_by == "developer":
-        query += f"WHERE c.contributor_name ILIKE '%{searcher}%' ORDER BY developer"
-    if sort_by == "price":
-        query += f"WHERE MAX(vgp.price_on_plat) = {searcher} ORDER BY price"
-    if sort_by == "genre":
-        query += f"WHERE g.genre_name ILIKE '%{searcher}%' ORDER BY genre"
-    if sort_order:
-        query += f" {sort_order}, vg.title ASC, MAX(vgp.plat_release_date) ASC"
+    if search_by == "name":
+        query += f"WHERE vg.title ILIKE '%{searcher}%' "
+    elif search_by == "platform":
+        query += f"WHERE p.platform_name ILIKE '%{searcher}%' "
+    elif search_by == "release_date":
+        query += f"WHERE vgp.plat_release_date = '{searcher}' "
+    elif search_by == "developer":
+        query += f"WHERE c.contributor_name ILIKE '%{searcher}%' "
+    elif search_by == "price":
+        query += f"WHERE vgp.price_on_plat = '{searcher}' "
+    elif search_by == "genre":
+        query += f"WHERE g.genre_name ILIKE '%{searcher}%' "
     else:
-        query += "ORDER BY vg.title ASC, MAX(vgp.plat_release_date) ASC"
+        print("Invalid search by term")
+        return
+    query += "GROUP BY vg.title, p.platform_name, vg.esrb, g.genre_name "
+    if sort_by == "name":
+        query += "ORDER BY vg.title "
+    elif sort_by == "price":
+        query += "ORDER BY price "
+    elif sort_by == "genre":
+        query += "ORDER BY genre "
+    elif sort_by == "year":
+        query += "ORDER BY release_date "
+    else:
+        print("Invalid order by term")
 
+    if sort_order != "asc" and sort_order != "desc":
+        print("Invalid sort order")
+        return
+    query += f"{sort_order}, vg.title ASC, MAX(vgp.plat_release_date) ASC"
     cur.execute(query)
-    print(cur.fetchall())
+    for c in cur.fetchall():
+        print(c)
+
 
 def login(conn, username, password):
     cursor = conn.cursor()
