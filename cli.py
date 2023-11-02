@@ -84,6 +84,8 @@ def start_session(conn):
         x = str(input(">>> "))
         if x == "q":
             break
+        if len(x.strip()) == 0:
+            continue
         arguments = [e[0] if e[0] else e[1] for e in re.findall(r'"([^"]+)"|([^ ]+)', x)]
         name = arguments[0]
         if name == "help":
