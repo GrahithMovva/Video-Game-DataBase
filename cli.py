@@ -12,10 +12,6 @@ UID = -1
 USER = None
 
 
-def print_col(conn, username):
-    print(funcs.get_collections(conn, username))
-
-
 def login(conn, username, password):
     uid = funcs.login(conn, username, password)
     if uid != -1:
@@ -36,7 +32,7 @@ functions_info = {
     "login": [2, "login  [username] | [password]", login],
     "cra": [4, "cra  [username] | [password] | [first_name] | [last_name]", funcs.create_account],
     "crc": [1, "crc  [collection_name]", funcs.create_collection],
-    "getc": [0, "getc", print_col],
+    "getc": [0, "getc", funcs.get_collections],
     "coladd": [2, "coladd  [collection] | [game]", funcs.add_game_to_collection],
     "coldelg": [2, "coldelg  [collection] | [game]", funcs.delete_game_from_collection],
     "coldel": [1, "coldel  [collection]", funcs.delete_collection],
@@ -44,6 +40,7 @@ functions_info = {
     "rate": [2, "rate  [game] | [stars]", funcs.rate_game],
     "play": [2, "play  [game] | [minutes]", funcs.play_game],
     "playr": [1, "playr  [minutes]", funcs.play_game_random],
+    "search": [1, "search [email]", funcs.search_user],
     "fol": [1, "fol  [username]", funcs.follow],
     "unfol": [1, "unfol  [username]", funcs.unfollow],
     "logout": [0, "logout", logout]

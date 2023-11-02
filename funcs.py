@@ -33,8 +33,8 @@ def get_collections(conn, username):
                 WHERE collections.uid = %s
                 GROUP BY collection_name""", (uid,)
                 )
-    
-    return curs.fetchall()
+
+    print(curs.fetchall())
 
 
 def add_game_to_collection(conn, username, collection_name, game):
@@ -193,15 +193,15 @@ def unfollow(conn, username, f_username):
     conn.commit()
 
 
-def search_user(conn, email):
+def search_user(conn, username, email):
     curs = conn.cursor()
     curs.execute("""
                 SELECT username FROM users
                 INNER JOIN users_email on users.uid = users_email.uid
                 WHERE email = %s
                 """, (email,))
-    
-    return curs.fetchall()
+    for c in curs.fetchall():
+        print(c[0])
 
 
 def search_video_games(conn, name=None, platform=None, release_date=None, developer=None, price=None, genre=None, sort_by=None, sort_order='asc'):
