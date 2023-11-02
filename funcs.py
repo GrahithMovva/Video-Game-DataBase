@@ -2,7 +2,7 @@ import random
 import datetime
 
 
-def create_account(conn, first_name, last_name, username, password):
+def create_account(conn, username, password, first_name, last_name):
     curs = conn.cursor()
     date = datetime.datetime.today()
     curs.execute("""
