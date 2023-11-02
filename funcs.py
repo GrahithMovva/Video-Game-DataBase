@@ -100,7 +100,7 @@ def rate_game(conn, username, game, rating):
     curs.execute("""
                 SELECT COUNT(*) FROM user_ratings
                 WHERE uid = %s AND vid = %s
-                """)
+                """ , (uid,vid))
     
     if(len(curs.fetchall()) > 0):
         curs.execute("""
