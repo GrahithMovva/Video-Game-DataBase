@@ -124,7 +124,7 @@ def play_game(conn, username, game, time_min):
     vid = get_vid(curs, game)
     curs.execute("""
                 SELECT * FROM user_owns
-                WHERE uid = %s AND vid = &s 
+                WHERE uid = %s AND vid = %s 
                 """, (uid,vid))
     
     if(len(curs.fetchall()) > 0):
