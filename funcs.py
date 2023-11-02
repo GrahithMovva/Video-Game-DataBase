@@ -57,7 +57,7 @@ def add_game_to_collection(conn, username, collection_name, game):
         conn.commit()
     
     else:
-        print("You do not own the video game")
+        print("You do not own the platform the vidoe game is based on ")
 
 
 def delete_game_from_collection(conn, username, collection_name, game):
