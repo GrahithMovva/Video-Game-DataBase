@@ -184,6 +184,7 @@ def unfollow(conn, username, f_username):
     curs = conn.cursor()
     uid = get_uid(curs, username)
     f_uid = get_uid(curs, f_username)
+
     curs.execute("""
                 DELETE FROM user_followers
                 WHERE userid = %s
@@ -204,7 +205,7 @@ def search_user(conn, username, email):
         print(c[0])
 
 
-def search_video_games(conn, name=None, platform=None, release_date=None, developer=None, price=None, genre=None, sort_by=None, sort_order='asc'):
+def search_video_games(conn, searcher, sort_by, sort_order='asc'):
     cur = conn.cursor()
     query = """
     SELECT
@@ -254,37 +255,19 @@ def search_video_games(conn, name=None, platform=None, release_date=None, develo
         MAX(ur.star_rating) DESC;
         """
 
-    # if name:
-    #     query += f"name ILIKE '%{name}%'"
-    # if platform:
-    #     query += f"platform ILIKE '%{platform}%'"
-    # if release_date:
-    #     query += f"release_date = '{release_date}'"
-    # if developer:
-    #     query += f"developer ILIKE '%{developer}%'"
-    # if price:
-    #     query += f"price = {price}"
-    # if genre:
-    #     query += f"genre ILIKE '%{genre}%'"
-    # if sort_by:
-    #     query += f" ORDER BY {sort_by} {sort_order}, name ASC, release_date ASC"
-    # else:
-    #     query += " ORDER BY name ASC, release_date ASC"
-# WHERE
-#     vg.title ILIKE 'Minecraft' AND vg.esrb ILIKE 'E'
-    if name:
-        query += f"WHERE vg.title ILIKE '%{name}%'"
-    if platform:
-        query += f"WHERE p.platform_name ILIKE '%{platform}%'"
-    if release_date:
-        query += f"WHERE MAX(vgp.plat_release_date) = '{release_date}'"
-    if developer:
-        query += f"WHERE c.contributor_name ILIKE '%{developer}%'"
-    if price:
-        query += f"WHERE MAX(vgp.price_on_plat) = {price}"
-    if genre:
-        query += f"WHERE g.genre_name ILIKE '%{genre}%'"
-    if sort_by:
+    if sort_by == "name":
+        query += f"WHERE vg.title ILIKE '%{searcher}%'"
+    if sort_by == "platform":
+        query += f"WHERE p.platform_name ILIKE '%{searcher}%'"
+    if sort_by == "release_date":
+        query += f"WHERE MAX(vgp.plat_release_date) = '{searcher}'"
+    if sort_by == "developer":
+        query += f"WHERE c.contributor_name ILIKE '%{searcher}%'"
+    if sort_by == "price":
+        query += f"WHERE MAX(vgp.price_on_plat) = {searcher}"
+    if sort_by == "genre":
+        query += f"WHERE g.genre_name ILIKE '%{searcher}%'"
+    if sort_order:
         query += f" ORDER BY {sort_by} {sort_order}, vg.title ASC, MAX(vgp.plat_release_date) ASC"
     else:
         query += " ORDER BY vg.title ASC, MAX(vgp.plat_release_date) ASC"
@@ -293,7 +276,6 @@ def search_video_games(conn, name=None, platform=None, release_date=None, develo
     results = cur.fetchall()
 
     return results
-
 
 def login(conn, username, password):
     cursor = conn.cursor()

@@ -43,7 +43,8 @@ functions_info = {
     "search": [1, "search [email]", funcs.search_user],
     "fol": [1, "fol  [username]", funcs.follow],
     "unfol": [1, "unfol  [username]", funcs.unfollow],
-    "logout": [0, "logout", logout]
+    "logout": [0, "logout", logout],
+    "search_game": [2, "search_game [search_type] [game]", funcs.search_video_games],
 }
 
 
