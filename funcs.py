@@ -21,21 +21,52 @@ def create_collection(conn, username, collection_name):
                 """, (uid, collection_name))
     conn.commit()
 
+"""
+SELECT collection_name,SUM(time_played)FROM collections
+                FULL OUTER JOIN  video_game_collections on video_game_collections.cid = collections.cid
+                FULL OUTER JOIN user_plays on user_plays.vid = video_game_collections.vid
+                FULL OUTER JOIN video_games on video_game_collections.vid = video_games.vid
+                WHERE collections.uid = 214
+                group by collection_name;
+
+SELECT COUNT(vid) from video_game_collections
+        INNER JOIN collections on video_game_collections.cid = collections.cid
+        WHERE collections.uid = 214
+"""
 
 def get_collections(conn, username):
     curs = conn.cursor()
     uid = get_uid(curs, username)
     curs.execute(
-                """SELECT (collection_name),count(video_games.vid),SUM(time_played)FROM video_game_collections
-                INNER JOIN collections on video_game_collections.cid = collections.cid
-                INNER JOIN user_plays on user_plays.vid = video_game_collections.vid
-                INNER JOIN video_games on video_game_collections.vid = video_games.vid
+                """SELECT collection_name,SUM(time_played)FROM collections
+                FULL OUTER JOIN  video_game_collections on video_game_collections.cid = collections.cid
+                FULL OUTER JOIN user_plays on user_plays.vid = video_game_collections.vid
+                FULL OUTER JOIN video_games on video_game_collections.vid = video_games.vid
                 WHERE collections.uid = %s
-                GROUP BY collection_name""", (uid,)
+                group by collection_name""", (uid,)
                 )
 
-    print(curs.fetchall())
+    first_half = curs.fetchall()
+    second_part = []
 
+    for i in range(len(first_half)):
+        cid = get_cid_uid(curs,first_half[i][0],uid)
+        curs.execute(
+                    """SELECT COUNT(vid) from video_game_collections
+                    INNER JOIN collections on video_game_collections.cid = collections.cid
+                    WHERE collections.uid = %s
+                    AND collections.cid = %s""", (uid,cid)
+                    )
+
+        second_part.append(curs.fetchall()[0])
+
+    print("collection name   |  Number of video_games in collection  |   Total play time")
+    for i in range(len(first_half)):
+        number = 20
+        first = ('{: >40}'.format(str(first_half[i][1])))
+        second = ('{: >20}'.format(str(second_part[i][0])))
+        print(first_half[i][0],f'{second}',f'{first}' )
+    
 
 def add_game_to_collection(conn, username, collection_name, game):
     curs = conn.cursor()
@@ -338,3 +369,12 @@ def get_vid(cursor, video_game):
         return -1
     return result[0][0]
 
+def get_cid_uid(cursor, collection_name, uid):
+    cursor.execute(f"""
+        SELECT cid
+        FROM collections
+        WHERE collection_name = '{collection_name}'
+        AND uid = {uid}""")
+    
+    result = cursor.fetchall()
+    return result[0][0]
