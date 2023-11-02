@@ -105,7 +105,7 @@ def rate_game(conn, username, game, rating):
     if(len(curs.fetchall()) > 0):
         curs.execute("""
                     UPDATE user_ratings
-                    SET rating = %s
+                    SET star_rating = %s
                     WHERE uid = %s and vid= %s
                     """ , (rating, uid, vid))
 
@@ -124,8 +124,8 @@ def play_game(conn, username, game, time_min):
     vid = get_vid(curs, game)
     curs.execute("""
                 SELECT * FROM user_owns
-                WHERE uid = %s
-                """, (uid,))
+                WHERE uid = %s AND vid = &s 
+                """, (uid,vid))
     
     if(len(curs.fetchall()) > 0):
         curs.execute("""
@@ -345,3 +345,4 @@ def get_vid(cursor, video_game):
     if len(result) != 1:
         return -1
     return result[0][0]
+
