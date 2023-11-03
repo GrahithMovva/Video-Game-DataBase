@@ -324,6 +324,7 @@ def search_video_games(conn, username, search_by, searcher, sort_by, sort_order)
         query += "ORDER BY release_date "
     else:
         print("Invalid order by term")
+        return
 
     if sort_order != "asc" and sort_order != "desc":
         print("Invalid sort order")
