@@ -394,3 +394,38 @@ def get_cid_uid(cursor, collection_name, uid):
     
     result = cursor.fetchall()
     return result[0][0]
+
+def show_profilr(curs,uid):
+
+    curs.execute("""
+                SELECT COUNT(*) FROM collections
+                WHERE uid = %s
+                """ , (uid,))
+    
+    number_of_collections = curs.fetchall()[0][0]
+
+    curs.execute("""
+                SELECT COUNT(*) FROM user_followers
+                WHERE uid = %s
+                """ , (uid,))
+    
+    number_of_followers = curs.fetchall()[0][0]
+
+    curs.execute("""
+                SELECT COUNT(*) FROM user_followers
+                WHERE followerid = %s
+                """ , (uid,))
+    
+    follows = curs.fetchall()[0][0]
+
+    curs.execute("""
+                SELECT title from video_games
+                INNER JOIN user_ratings on user_ratings.vid = video_games.vid
+                WHERE uid = %s
+                ORDER BY star_rating DESC
+                LIMIT 10
+                """,(uid,))
+    
+    top_games = curs.fetchall()
+
+    
