@@ -149,6 +149,15 @@ def rate_game(conn, username, game, rating):
         print("Game does not exist")
         return
     curs.execute("""
+                SELECT COUNT(*) FROM user_plays
+                WHERE uid=%s AND vid = %s
+                """,(uid,vid))
+    
+    if(curs.fetchall()[0][0] <= 0):
+        print("You need to pla ythis game to rate this game")
+        return
+    
+    curs.execute("""
                 SELECT COUNT(*) FROM user_ratings
                 WHERE uid = %s AND vid = %s
                 """ , (uid,vid))
