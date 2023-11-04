@@ -265,8 +265,8 @@ def search_video_games(conn, username, search_by, searcher, sort_by, sort_order)
     SELECT
     vg.title AS video_game_name,
     p.platform_name AS platform,
-    string_agg(c.contributor_name, ', ') AS developers,
-    string_agg(cp.contributor_name, ', ') AS publisher,
+    dev.developers,
+    pub.publishers,
     g.genre_name AS genre,
     MAX(vgp.plat_release_date) AS release_date,
     MAX(vgp.price_on_plat) AS price,
@@ -280,14 +280,20 @@ def search_video_games(conn, username, search_by, searcher, sort_by, sort_order)
         p320_07.video_game_platforms vgp ON vg.vid = vgp.vid
     JOIN
         p320_07.platforms p ON vgp.pid = p.pid
-    LEFT JOIN
-        p320_07.video_game_developers vgd ON vg.vid = vgd.vid
-    LEFT JOIN
-        p320_07.contributors c ON vgd.conid = c.conid
-    LEFT JOIN
-        p320_07.video_game_publishers vgp_pub ON vg.vid = vgp_pub.vid
-    LEFT JOIN
-        p320_07.contributors cp ON vgp_pub.conid = cp.conid
+    LEFT JOIN (
+        SELECT vg1.vid, string_agg(c1.contributor_name, ', ') AS developers
+        FROM p320_07.video_games vg1
+        LEFT JOIN p320_07.video_game_developers vgd1 ON vg1.vid = vgd1.vid
+        LEFT JOIN p320_07.contributors c1 ON vgd1.conid = c1.conid
+        GROUP BY vg1.vid
+    ) dev ON vg.vid = dev.vid
+    LEFT JOIN (
+        SELECT vg2.vid, string_agg(cp1.contributor_name, ', ') AS publishers
+        FROM p320_07.video_games vg2
+        LEFT JOIN p320_07.video_game_publishers vgp_pub1 ON vg2.vid = vgp_pub1.vid
+        LEFT JOIN p320_07.contributors cp1 ON vgp_pub1.conid = cp1.conid
+        GROUP BY vg2.vid
+    ) pub ON vg.vid = pub.vid
     LEFT JOIN
         p320_07.video_game_genre vgg ON vg.vid = vgg.vid
     LEFT JOIN
@@ -305,7 +311,7 @@ def search_video_games(conn, username, search_by, searcher, sort_by, sort_order)
     elif search_by == "release_date":
         query += f"WHERE vgp.plat_release_date = '{searcher}' "
     elif search_by == "developer":
-        query += f"WHERE c.contributor_name ILIKE '%{searcher}%' "
+        query += f"WHERE dev.developers ILIKE '%{searcher}%' "
     elif search_by == "price":
         query += f"WHERE vgp.price_on_plat = '{searcher}' "
     elif search_by == "genre":
@@ -313,7 +319,7 @@ def search_video_games(conn, username, search_by, searcher, sort_by, sort_order)
     else:
         print("Invalid search by term")
         return
-    query += "GROUP BY vg.title, p.platform_name, vg.esrb, g.genre_name "
+    query += "GROUP BY vg.title, p.platform_name, dev.developers, pub.publishers, vg.esrb, g.genre_name "
     if sort_by == "name":
         query += "ORDER BY vg.title "
     elif sort_by == "price":
@@ -333,6 +339,8 @@ def search_video_games(conn, username, search_by, searcher, sort_by, sort_order)
     cur.execute(query)
     for c in cur.fetchall():
         print(c)
+
+
 
 
 def login(conn, username, password):
