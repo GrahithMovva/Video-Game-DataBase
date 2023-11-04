@@ -21,18 +21,6 @@ def create_collection(conn, username, collection_name):
                 """, (uid, collection_name))
     conn.commit()
 
-"""
-SELECT collection_name,SUM(time_played)FROM collections
-                FULL OUTER JOIN  video_game_collections on video_game_collections.cid = collections.cid
-                FULL OUTER JOIN user_plays on user_plays.vid = video_game_collections.vid
-                FULL OUTER JOIN video_games on video_game_collections.vid = video_games.vid
-                WHERE collections.uid = 214
-                group by collection_name;
-
-SELECT COUNT(vid) from video_game_collections
-        INNER JOIN collections on video_game_collections.cid = collections.cid
-        WHERE collections.uid = 214
-"""
 
 def get_collections(conn, username):
     curs = conn.cursor()
@@ -43,10 +31,12 @@ def get_collections(conn, username):
                 FULL OUTER JOIN user_plays on user_plays.vid = video_game_collections.vid
                 FULL OUTER JOIN video_games on video_game_collections.vid = video_games.vid
                 WHERE collections.uid = %s
-                group by collection_name""", (uid,)
+                AND user_plays.uid = %s
+                group by collection_name""", (uid,uid)
                 )
 
     first_half = curs.fetchall()
+    print(first_half)
     second_part = []
 
     for i in range(len(first_half)):
@@ -148,6 +138,7 @@ def rate_game(conn, username, game, rating):
     if vid == -1:
         print("Game does not exist")
         return
+    
     curs.execute("""
                 SELECT COUNT(*) FROM user_plays
                 WHERE uid=%s AND vid = %s
