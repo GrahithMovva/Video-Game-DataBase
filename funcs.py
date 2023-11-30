@@ -185,7 +185,7 @@ def play_game(conn, username, game, time_min):
         curs.execute("""
                     INSERT INTO user_plays (uid,vid,time_played,date_played)
                     VALUES(%s,%s,%s,%s)
-                    """, (uid, vid, time_min,datetime.datetime.today()))
+                    """, (uid, vid, time_min,datetime.datetime.now()))
         
         conn.commit()
     
@@ -204,9 +204,9 @@ def play_game_random(conn, username, time_min):
     if(len(video_games) > 0):
         vid = random.choice(video_games)
         curs.execute("""
-                    INSERT INTO user_plays (uid,vid,time_played)
+                    INSERT INTO user_plays (uid,vid,time_played,date_played)
                     VALUES(%s,%s,%s)
-                    """, (uid, vid, time_min))
+                    """, (uid, vid, time_min,datetime.datetime.now()))
         
         conn.commit()
     
