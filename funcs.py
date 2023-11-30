@@ -183,9 +183,9 @@ def play_game(conn, username, game, time_min):
     
     if(len(curs.fetchall()) > 0):
         curs.execute("""
-                    INSERT INTO user_plays (uid,vid,time_played)
-                    VALUES(%s,%s,%s)
-                    """, (uid, vid, time_min))
+                    INSERT INTO user_plays (uid,vid,time_played,date_played)
+                    VALUES(%s,%s,%s,%s)
+                    """, (uid, vid, time_min,datetime.datetime.today()))
         
         conn.commit()
     
@@ -404,7 +404,7 @@ def get_cid_uid(cursor, collection_name, uid):
     result = cursor.fetchall()
     return result[0][0]
 
-def show_profilr(curs,uid):
+def show_profile(curs,uid):
 
     curs.execute("""
                 SELECT COUNT(*) FROM collections
@@ -436,5 +436,7 @@ def show_profilr(curs,uid):
                 """,(uid,))
     
     top_games = curs.fetchall()
+
+    
 
     
