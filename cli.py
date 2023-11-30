@@ -31,6 +31,7 @@ def logout(*args):
 functions_info = {
     "login": [2, "login  [username] | [password]", login],
     "cra": [4, "cra  [username] | [password] | [first_name] | [last_name]", funcs.create_account],
+    "profile": [0, "profile", funcs.show_profile],
     "crc": [1, "crc  [collection_name]", funcs.create_collection],
     "getc": [0, "getc", funcs.get_collections],
     "coladd": [2, "coladd  [collection] | [game]", funcs.add_game_to_collection],

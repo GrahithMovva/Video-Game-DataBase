@@ -404,21 +404,24 @@ def get_cid_uid(cursor, collection_name, uid):
     result = cursor.fetchall()
     return result[0][0]
 
-def show_profile(curs,uid):
-
+def show_profile(conn,username):
+    curs = conn.cursor()
+    uid = get_uid(curs, username)
     curs.execute("""
                 SELECT COUNT(*) FROM collections
                 WHERE uid = %s
                 """ , (uid,))
     
     number_of_collections = curs.fetchall()[0][0]
+    print(f"Number of collections: {number_of_collections}")
 
     curs.execute("""
                 SELECT COUNT(*) FROM user_followers
-                WHERE uid = %s
+                WHERE userid = %s
                 """ , (uid,))
     
     number_of_followers = curs.fetchall()[0][0]
+    print(f"Number of followers: {number_of_followers}")
 
     curs.execute("""
                 SELECT COUNT(*) FROM user_followers
@@ -426,6 +429,7 @@ def show_profile(curs,uid):
                 """ , (uid,))
     
     follows = curs.fetchall()[0][0]
+    print(f"Number of users following: {follows}")
 
     curs.execute("""
                 SELECT title from video_games
@@ -436,7 +440,8 @@ def show_profile(curs,uid):
                 """,(uid,))
     
     top_games = curs.fetchall()
-
-    
+    print("Top games: ")
+    for g in top_games:
+        print(g)
 
     
