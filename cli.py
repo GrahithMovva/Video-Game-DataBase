@@ -38,6 +38,8 @@ functions_info = {
     "coldelg": [2, "coldelg  [collection] | [game]", funcs.delete_game_from_collection],
     "coldel": [1, "coldel  [collection]", funcs.delete_collection],
     "colren": [2, "colren  [collection] | [new_name]", funcs.modify_collection_name],
+    "padd": [1, "padd [platform]", funcs.add_platform],
+    "gadd": [1, "gadd [game]", funcs.add_game],
     "rate": [2, "rate  [game] | [stars]", funcs.rate_game],
     "play": [2, "play  [game] | [minutes]", funcs.play_game],
     "playr": [1, "playr  [minutes]", funcs.play_game_random],

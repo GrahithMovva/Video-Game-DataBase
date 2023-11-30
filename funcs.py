@@ -341,8 +341,6 @@ def search_video_games(conn, username, search_by, searcher, sort_by, sort_order)
         print(c)
 
 
-
-
 def login(conn, username, password):
     cursor = conn.cursor()
     date = datetime.datetime.today()
@@ -373,6 +371,17 @@ def get_uid(cursor, username):
     return result[0][0]
 
 
+def get_pid(cursor, plat_name):
+    cursor.execute(f"""
+        SELECT pid
+        FROM platforms
+        WHERE platform_name ='{plat_name}'""")
+    result = cursor.fetchall()
+    if len(result) != 1:
+        return -1
+    return result[0][0]
+
+
 def get_cid(cursor, collection_name, username):
     cursor.execute(f"""
         SELECT cid
@@ -394,6 +403,7 @@ def get_vid(cursor, video_game):
         return -1
     return result[0][0]
 
+
 def get_cid_uid(cursor, collection_name, uid):
     cursor.execute(f"""
         SELECT cid
@@ -403,6 +413,7 @@ def get_cid_uid(cursor, collection_name, uid):
     
     result = cursor.fetchall()
     return result[0][0]
+
 
 def show_profile(conn,username):
     curs = conn.cursor()
@@ -418,7 +429,7 @@ def show_profile(conn,username):
     curs.execute("""
                 SELECT COUNT(*) FROM user_followers
                 WHERE userid = %s
-                """ , (uid,))
+                """, (uid,))
     
     number_of_followers = curs.fetchall()[0][0]
     print(f"Number of followers: {number_of_followers}")
@@ -443,5 +454,24 @@ def show_profile(conn,username):
     print("Top games: ")
     for g in top_games:
         print(g)
+    return
 
-    
+
+def add_platform(conn, username, name):
+    cursor = conn.cursor()
+    uid = get_uid(cursor, username)
+    pid = get_pid(cursor, name)
+    cursor.execute(f"""
+                INSERT INTO user_platforms(uid, pid)
+                VALUES ({uid}, {pid})""")
+    return
+
+
+def add_game(conn, username, game):
+    cursor = conn.cursor()
+    uid = get_uid(cursor, username)
+    vid = get_vid(cursor, game)
+    cursor.execute(f"""
+                INSERT INTO user_owns(uid, vid) 
+                VALUES ({uid}, {vid})""")
+    return
