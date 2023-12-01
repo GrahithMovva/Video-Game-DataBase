@@ -318,6 +318,7 @@ def search_video_games(conn, username, search_by, searcher, sort_by, sort_order)
         query += f"WHERE g.genre_name ILIKE '%{searcher}%' "
     else:
         print("Invalid search by term")
+        print("The available search terms are: name | platform | release_date | developer | price | genre")
         return
     query += "GROUP BY vg.title, p.platform_name, dev.developers, pub.publishers, vg.esrb, g.genre_name "
     if sort_by == "name":
@@ -326,10 +327,11 @@ def search_video_games(conn, username, search_by, searcher, sort_by, sort_order)
         query += "ORDER BY price "
     elif sort_by == "genre":
         query += "ORDER BY genre "
-    elif sort_by == "year":
+    elif sort_by == "release_date":
         query += "ORDER BY release_date "
     else:
         print("Invalid order by term")
+        print("The available order by terms are: name | release_date | price | genre")
         return
 
     if sort_order != "asc" and sort_order != "desc":
