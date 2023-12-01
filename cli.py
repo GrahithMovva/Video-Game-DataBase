@@ -48,6 +48,10 @@ functions_info = {
     "unfol": [1, "unfol  [username]", funcs.unfollow],
     "logout": [0, "logout", logout],
     "search_game": [4, "search_game  [search_by] | [string] | [order_by] | [asc/desc]", funcs.search_video_games],
+    "pop_games" : [0, "pop_games", funcs.get_trending_games],
+    "fol_games" : [0, "fol_games", funcs.get_follower_games],
+    "mon_games" : [0, "mon_games", funcs.get_trending_games_month],
+    "rec_games" : [0, "rec_games", funcs.recommended_games],
 }
 
 

@@ -464,7 +464,7 @@ def add_platform(conn, username, name):
     cursor.execute(f"""
                 INSERT INTO user_platforms(uid, pid)
                 VALUES ({uid}, {pid})""")
-    return
+    conn.commit()
 
 
 def add_game(conn, username, game):
@@ -474,4 +474,141 @@ def add_game(conn, username, game):
     cursor.execute(f"""
                 INSERT INTO user_owns(uid, vid) 
                 VALUES ({uid}, {vid})""")
+    conn.commit()
+
+def get_trending_games(conn,username):
+    cursor = conn.cursor()
+    cursor.execute("""
+                SELECT title FROM user_plays
+                INNER JOIN video_games on video_games.vid = user_plays.vid
+                INNER JOIN user_ratings on video_games.vid = user_ratings.vid
+                WHERE ((date_played + INTERVAL '3 months') >= CURRENT_DATE)
+                GROUP BY title
+                ORDER BY AVG(star_rating) DESC
+                LIMIT 20
+                """)
+    
+    games = cursor.fetchall()
+    print("Trending Games over the last 90 days:")
+    for game in games:
+        print(game[0])
+    
     return
+
+def get_follower_games(conn,username):
+    cursor = conn.cursor()
+    uid = get_uid(cursor,username)
+    cursor.execute("""
+                SELECT title FROM user_plays
+                INNER JOIN video_games on video_games.vid = user_plays.vid
+                INNER JOIN user_ratings on video_games.vid = user_ratings.vid
+                INNER JOIN user_followers on user_followers.followerid = user_plays.uid
+                AND userid = %s
+                GROUP BY title
+                ORDER BY AVG(star_rating) DESC
+                """,(uid,))
+    
+    games = cursor.fetchall()
+    print("Trending Games rated by followers:")
+    for game in games:
+        print(game[0])
+    
+    return
+
+def get_trending_games_month(conn,username):
+    cursor = conn.cursor()
+    cursor.execute("""
+                SELECT title FROM user_plays
+                INNER JOIN video_games on video_games.vid = user_plays.vid
+                INNER JOIN user_ratings on video_games.vid = user_ratings.vid
+                WHERE to_char(date_played , 'MONTH') = to_char(CURRENT_DATE,'MONTH')
+                GROUP BY title
+                ORDER BY AVG(star_rating) DESC
+                LIMIT 5
+                """,)
+    
+    games = cursor.fetchall()
+    print("Popular games this month:")
+    for game in games:
+        print(game[0])
+    
+    return
+
+def recommended_games(conn,username):
+    cursor = conn.cursor()
+    uid = get_uid(cursor,username)
+    query = f"""SELECT DISTINCT title FROM users
+                INNER JOIN user_plays on users.uid = user_plays.uid
+                INNER JOIN user_ratings on user_ratings.uid = users.uid
+                INNER JOIN video_games on user_plays.vid = video_games.vid
+                INNER JOIN video_game_genre on video_games.vid = video_game_genre.vid
+                INNER JOIN genre on video_game_genre.gid = genre.gid
+                INNER JOIN user_platforms on user_ratings.uid = user_platforms.uid
+                INNER JOIN platforms on user_platforms.pid = platforms.pid
+                INNER JOIN video_game_developers on video_games.vid = video_game_developers.vid
+                INNER JOIN contributors on video_game_developers.conid = contributors.conid
+
+                WHERE genre_name IN ( SELECT genre_name from users
+                                    INNER JOIN user_ratings on users.uid = user_ratings.uid
+                                    INNER JOIN video_game_genre on user_ratings.vid = video_game_genre.vid
+                                    INNER JOIN genre on video_game_genre.gid = genre.gid
+                                    AND user_ratings.uid = {uid}
+                                    GROUP BY genre_name
+                                    ORDER BY AVG(star_rating) DESC
+                                    LIMIT 5)
+                   
+                OR  platform_name IN (SELECT platform_name from platforms
+                                    INNER JOIN user_platforms on platforms.pid = user_platforms.pid
+                                    INNER JOIN user_ratings on user_ratings.uid = user_platforms.uid
+                                    AND user_ratings.uid = {uid}
+                                    GROUP BY platform_name
+                                    ORDER BY AVG(star_rating) DESC
+                                    LIMIT 5)
+                   
+                OR contributor_name IN (SELECT contributor_name from users
+                                    INNER JOIN user_ratings on user_ratings.uid = users.uid
+                                    INNER JOIN video_game_developers on user_ratings.vid = video_game_developers.vid
+                                    INNER JOIN contributors on video_game_developers.conid = contributors.conid
+                                    AND user_ratings.uid = {uid}
+                                    GROUP BY contributor_name
+                                    ORDER BY AVG(star_rating) DESC
+                                    LIMIT 5)
+                """
+    
+    cursor.execute(query)
+    games = cursor.fetchall()
+    if(len(games) > 0):
+        print("Recommeded Games:\n")
+        for game in games:
+            print(game[0])
+    else:
+        print("Rate games to get recommended games")
+  
+    
+    cursor.execute(f"""
+                SELECT date_played,time_played/60 as hours,time_played%60 as minutes,username, title from user_plays
+                INNER JOIN users on user_plays.uid = users.uid
+                INNER JOIN user_followers on users.uid = user_followers.followerid
+                INNER JOIN video_games on user_plays.vid = video_games.vid
+                WHERE userid = {uid}
+                AND title IN ({query})
+                group by username,title,followerid,userid,date_played,hours,minutes
+                """)
+    
+    play_time = cursor.fetchall()
+
+    if(len(play_time) > 0):
+        print("\nPlay Time by followers for recommended games:")
+        i = 0
+        for time in play_time:
+            print(i,")  Date Played:",time[0])
+            print("Hours Played:",time[1])
+            print("Minutes Played:",time[2])
+            print("Username:",time[3])
+            print("Video Game Title:",time[4])
+            i+=1
+    
+    else:
+        print("\nNo Play time for recommended games by followers")
+    return
+
