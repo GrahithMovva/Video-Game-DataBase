@@ -615,6 +615,6 @@ def recommended_games(conn,username):
             i+=1
     
     else:
-        print("\nNo Play time for recommended games by followers")
+        print("\nNo Play time for recommended games by similar users ")
     return
 
