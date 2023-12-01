@@ -491,7 +491,7 @@ def get_trending_games(conn,username):
                 """)
     
     games = cursor.fetchall()
-    print("Trending Games over the last 90 days:")
+    print("Trending Games over the last 90 days:\n")
     for game in games:
         print(game[0])
     
@@ -511,7 +511,7 @@ def get_follower_games(conn,username):
                 """,(uid,))
     
     games = cursor.fetchall()
-    print("Trending Games rated by followers:")
+    print("Trending Games rated by followers:\n")
     for game in games:
         print(game[0])
     
@@ -530,7 +530,7 @@ def get_trending_games_month(conn,username):
                 """,)
     
     games = cursor.fetchall()
-    print("Popular games this month:")
+    print("Popular games this month:\n")
     for game in games:
         print(game[0])
     
@@ -590,24 +590,24 @@ def recommended_games(conn,username):
     cursor.execute(f"""
                 SELECT date_played,time_played/60 as hours,time_played%60 as minutes,username, title from user_plays
                 INNER JOIN users on user_plays.uid = users.uid
-                INNER JOIN user_followers on users.uid = user_followers.followerid
                 INNER JOIN video_games on user_plays.vid = video_games.vid
-                WHERE userid = {uid}
+                INNER JOIN user_ratings on user_ratings.uid = users.uid
+                WHERE star_rating >= 3
                 AND title IN ({query})
-                group by username,title,followerid,userid,date_played,hours,minutes
+                group by username,title,date_played,hours,minutes
                 """)
     
     play_time = cursor.fetchall()
 
     if(len(play_time) > 0):
-        print("\nPlay Time by followers for recommended games:")
-        i = 0
+        print("\nPlay Time by similar users for recommended games:\n")
+        i = 1
         for time in play_time:
-            print(i,")  Date Played:",time[0])
+            print(i,") Date Played: ",time[0],sep = '')
             print("Hours Played:",time[1])
             print("Minutes Played:",time[2])
             print("Username:",time[3])
-            print("Video Game Title:",time[4])
+            print("Video Game Title:",time[4],"\n")
             i+=1
     
     else:
