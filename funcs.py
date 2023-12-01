@@ -492,7 +492,7 @@ def get_trending_games(conn,username):
     print("Trending Games over the last 90 days:\n")
     for game in games:
         print(game[0])
-    
+    print()
     return
 
 def get_follower_games(conn,username):
@@ -509,6 +509,10 @@ def get_follower_games(conn,username):
                 """,(uid,))
     
     games = cursor.fetchall()
+    if(len(games) <= 0):
+        print("You dont have any followers\n")
+        return
+    
     print("Trending Games rated by followers:\n")
     for game in games:
         print(game[0])
@@ -531,7 +535,7 @@ def get_trending_games_month(conn,username):
     print("Popular games this month:\n")
     for game in games:
         print(game[0])
-    
+    print()
     return
 
 def recommended_games(conn,username):
