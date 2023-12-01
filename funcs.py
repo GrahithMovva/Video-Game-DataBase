@@ -618,3 +618,15 @@ def recommended_games(conn,username):
         print("\nNo Play time for recommended games by similar users ")
     return
 
+
+def show_games(conn, username):
+    cursor = conn.cursor()
+    uid = get_uid(cursor, username)
+    cursor. execute(f"""
+                SELECT v
+                FROM user_owns o INNER JOIN video_games v ON o.vid = v.vid
+                WHERE o.uid = {uid}""")
+    games = cursor.fetchall()
+    for g in games:
+        print(g)
+    return

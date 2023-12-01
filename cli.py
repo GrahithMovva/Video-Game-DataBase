@@ -40,6 +40,7 @@ functions_info = {
     "col_rename": [2, "col_rename\t\t[collection] | [new_name]", funcs.modify_collection_name],
     "plat_add": [1, "plat_add\t\t[platform]", funcs.add_platform],
     "game_add": [1, "game_add\t\t[game]", funcs.add_game],
+    "show_owned": [0, "show_owned\t\t", funcs.show_games],
     "rate": [2, "rate\t\t\t[game] | [stars]", funcs.rate_game],
     "play": [2, "play\t\t\t[game] | [minutes]", funcs.play_game],
     "playr": [1, "playr\t\t\t[minutes]", funcs.play_game_random],
